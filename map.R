@@ -34,7 +34,8 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
-      actionButton("startFire", "Start Fire")
+      actionButton("startFire", "Start Fire"),
+      actionButton("endFires", "End Fire(s)")
     ),
   fluidRow(
     leafletOutput("map")
@@ -83,7 +84,16 @@ server <- function(input, output, session) {
       clearMarkers()
     
     leafletProxy("map") %>% 
-      addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00")
+      addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00", group = "fires")
+  })
+  
+  observeEvent(input$endFires, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    leafletProxy("map") %>% 
+      clearGroup("fires")
   })
 }
 
