@@ -30,13 +30,6 @@ ui <- fluidPage(
                 js_open_popup),
     useShinyjs()
   ),
-#  wellPanel(
-#    fluidRow(
-#      sliderInput("lng", "Longitude:", -126, -66, -126, 0.01),
-#      sliderInput("lat", "Latitude:", 24, 50, 24, 0.01),
-#      actionButton("add", "Add Marker")
-#    )
-#  ),
   fluidRow(
     leafletOutput("map")
   )
@@ -62,22 +55,6 @@ server <- function(input, output, session) {
       addMarkers(click$lng, click$lat, id,
                  "mymarkers",
                  popup = sprintf("%.2f / %.2f: %s", click$lng, click$lat,
-                                 id))
-    
-    runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
-  })
-
-  
-  observeEvent(input$add, {
-    id <- paste0("marker", input$add)
-    
-    leafletProxy("map") %>% 
-      clearMarkers()
-    
-    leafletProxy("map") %>%
-      addMarkers(input$lng, input$lat, id,
-                 "mymarkers",
-                 popup = sprintf("%.2f / %.2f: %s", input$lng, input$lat,
                                  id))
     
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
