@@ -5,32 +5,9 @@ library(shinyjs)
 long <- 0.0
 lati <- 0.0
 
-js_save_map_instance <- HTML(
-  paste(
-    "var mapsPlaceholder = [];",
-    "L.Map.addInitHook(function () {",
-    "   mapsPlaceholder.push(this); // Use whatever global scope variable you like.",
-    "});", sep = "\n"
-  )
-)
-
-js_open_popup <- HTML(
-  paste("function open_popup(id) {",
-        "   console.log('open popup for ' + id);",
-        "   mapsPlaceholder[0].eachLayer(function(l) {",
-        "      if (l.options && l.options.layerId == id) {",
-        "         l.openPopup();",
-        "      }",
-        "   });",
-        "}", sep = "\n"
-  )
-)
-
 ui <- fluidPage(
   tags$head(
-    tags$script(type = "text/javascript",
-                js_save_map_instance,
-                js_open_popup),
+    tags$script(type = "text/javascript"),
     useShinyjs()
   ),
   fluidRow(
