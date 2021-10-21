@@ -39,9 +39,7 @@ server <- function(input, output, session) {
       addMarkers(click$lng, click$lat, id,
                  "mymarkers",
                  popup = sprintf("%.2f / %.2f: %s", click$lng, click$lat,
-                                 id)#,
-      #addEasyButton(map, easyButton(id = "startFire", title = "Start Fire", position = "topright"))
-      )
+                                 id))
     
     long <<- click$lng
     lati <<- click$lat
