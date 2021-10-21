@@ -2,6 +2,9 @@ library(shiny)
 library(leaflet)
 library(shinyjs)
 
+long <- 0.0
+lati <- 0.0
+
 js_save_map_instance <- HTML(
   paste(
     "var mapsPlaceholder = [];",
@@ -31,6 +34,9 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
+      actionButton("startFire", "Start Fire")
+    ),
+  fluidRow(
     leafletOutput("map")
   )
 )
@@ -55,9 +61,29 @@ server <- function(input, output, session) {
       addMarkers(click$lng, click$lat, id,
                  "mymarkers",
                  popup = sprintf("%.2f / %.2f: %s", click$lng, click$lat,
-                                 id))
+                                 id)#,
+      #addEasyButton(map, easyButton(id = "startFire", title = "Start Fire", position = "topright"))
+      )
+    
+    long <<- click$lng
+    lati <<- click$lat
+    print("")
+    print("Coords are:")
+    print("Long: ") 
+    print(long)
+    print("Lat: ") 
+    print(lati)
     
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
+  })
+  
+  observeEvent(input$startFire, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    leafletProxy("map") %>% 
+      addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00")
   })
 }
 
