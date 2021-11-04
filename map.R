@@ -1,6 +1,11 @@
 library(shiny)
 library(leaflet)
 library(shinyjs)
+library(owmr)
+
+source("predict-functions.R")
+
+Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
 
 long <- 0.0
 lati <- 0.0
@@ -23,6 +28,7 @@ server <- function(input, output, session) {
   map <- leaflet() %>%
     addTiles() %>%
     fitBounds(-124.848974, 24.396308, -66.885444, 49.384358)
+    
   
   output$map <- renderLeaflet(
     map
@@ -60,6 +66,7 @@ server <- function(input, output, session) {
     
     leafletProxy("map") %>% 
       addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00", group = "fires")
+    fireStart(long, lati)
   })
   
   observeEvent(input$endFires, {
