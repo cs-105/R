@@ -2,6 +2,7 @@ library(shiny)
 library(leaflet)
 library(shinyjs)
 library(owmr)
+library(plyr)
 
 source("predict-functions.R")
 
@@ -50,6 +51,9 @@ server <- function(input, output, session) {
     long <<- click$lng
     lati <<- click$lat
     print("")
+    round_any(long, .1, f = floor) + .05
+    round_any(lati, .1, f = floor) + .05
+    print("")
     print("Coords are:")
     print("Long: ") 
     print(long)
@@ -64,9 +68,19 @@ server <- function(input, output, session) {
     leafletProxy("map") %>% 
       clearMarkers()
     
-    leafletProxy("map") %>% 
-      addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00", group = "fires")
-    fireStart(long, lati)
+    
+    if (willFireStart(long, lati)) {
+      leafletProxy("map") %>% 
+        addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00", group = "fires")
+      fireSpread(long, lati)
+    } else {
+      content <- paste(sep = "<br/>",
+          "Fire will not start.",
+          "Try a new location."
+          )
+      leafletProxy("map") %>% 
+        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
+    }
   })
   
   observeEvent(input$endFires, {
