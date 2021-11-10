@@ -36,7 +36,7 @@ willFireStart <- function(long, lat) {
   return(start)
 }
 
-willFireSpread <- function(long, lat, timePassed) {
+willFireSpread <- function(long, lat) {
   url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
                 ,"&lon=", long
                 ,"&appid=", API_key
@@ -49,8 +49,6 @@ willFireSpread <- function(long, lat, timePassed) {
   }
 }
 
-fireGrow <- function(long, lat, count) {
-  if (count == 1) {
-    return()
-  }
+fireGrow <- function(long, lat) {
+
 }

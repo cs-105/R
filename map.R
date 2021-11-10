@@ -71,8 +71,12 @@ server <- function(input, output, session) {
     
     if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 3000, color = "#FF2C00", group = "fires")
-      fireSpread(long, lati)
+        addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+      
+      leafletProxy("map") %>% 
+        sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
+      
+      fireGrow(long, lati)
     } else {
       content <- paste(sep = "<br/>",
           "Fire will not start.",
