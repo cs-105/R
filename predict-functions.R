@@ -3,21 +3,27 @@ library(rjson)
 
 source("read-csv.R")
 
-Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
+Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33")
 API_key = "ac66c8209bdf887068a2a79e4fdbca33"
 
 willFireStart <- function(long, lat) {
   start <- TRUE
   tryCatch({
-    url <- paste0("http://history.openweathermap.org/data/2.5/history/city?lat=",lat
-                  , "&lon=", long
-                  , "&type=hour"
-                  , "&cnt=4"
-                  , "&appid=", API_key)
+    url <-
+      paste0(
+        "http://history.openweathermap.org/data/2.5/history/city?lat=", lat
+        , "&lon=", long
+        , "&type=hour"
+        , "&cnt=4"
+        , "&appid=", API_key
+        , "&units=imperial"
+      )
     historical_weather <- fromJSON(file = url)
     print(historical_weather)
     print("Wind Speed:")
     print(historical_weather$list[[4]]$wind$speed)
+    print("Wind Direction:")
+    print(historical_weather$list[[4]]$wind$deg)
   }, error = function(e) {
     start <- FALSE
   }, warning = function(w) {
@@ -31,24 +37,107 @@ willFireStart <- function(long, lat) {
   print(long)
   print("Lat: ")
   print(lat)
-  print("Vegetation:")
-  print(getVegetation(long, lat))
+  # print("Vegetation:")
+  # print(getVegetation(long, lat))
   return(start)
 }
 
 willFireSpread <- function(long, lat) {
-  url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
-                ,"&lon=", long
-                ,"&appid=", API_key
-                ,"&cnt=", 4)
+  url <-
+    paste0(
+      "http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
+      , "&lon=", long
+      , "&appid=", API_key
+      , "&cnt=", 4
+    )
   weather <- fromJSON(file = url)
   vegetation <- getVegetation(long, lat)
   
-  if (vegetation.isnull || vegetation < .2) {
-    return(FALSE)
-  }
+  # if (is.null(vegetation) || vegetation <- .25) {
+  #   return(FALSE)
+  # }
+  return(TRUE)
 }
 
-fireGrow <- function(long, lat) {
-
+fireGrow <- function(longLatList, count) {
+  if (length(longLatList) == -1 || count == 0) {
+    return(list())
+  }
+  
+  local_long_lat <- list()
+  
+  for (i in seq(1, length(longLatList))) {
+    if (i %% 2 == 1) {
+      long <- longLatList[[i]]
+      lat <- longLatList[[(i + 1)]]
+      
+      url <-
+        paste0(
+          "http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
+          , "&lon=", long
+          , "&appid=", API_key
+          , "&cnt=", 4
+          , "&units=imperial"
+        )
+      weather <- fromJSON(file = url)
+      # print(weather)
+      wind <- weather$list[[count]]$wind$deg
+      
+      localList <- list()
+      
+      # If the wind is blowing North
+      if (wind >= 135 && wind < 225) {
+        if (willFireSpread((long - 0.00013), (lat + 0.00013))) {
+          local_long_lat <- append(localList, list((long - 0.00013), (lat + 0.00013)))
+        }
+        if (willFireSpread(long, (lat + 0.00017))) {
+          local_long_lat <- append(localList, list(long, (lat + 0.00017)))
+        }
+        if (willFireSpread((long + 0.00013), (lat + 0.00013))) {
+          local_long_lat <- append(localList, list((long + 0.00013), (lat + 0.00013)))
+        }
+      }
+      
+      # If the wind is blowing East
+      if (wind >= 225 && wind < 315) {
+        if (willFireSpread((long + 0.00013), (lat + 0.00013))) {
+          local_long_lat <- append(localList, list((long + 0.00013), (lat + 0.00013)))
+        }
+        if (willFireSpread((long + 0.000215), lat)) {
+          local_long_lat <- append(localList, list((long + 0.000215), lat))
+        }
+        if (willFireSpread((long + 0.00013), (lat - 0.00013))) {
+          local_long_lat <- append(localList, list((long + 0.00013), (lat - 0.00013)))
+        }
+      }
+      
+      # If the wind is blowing South
+      if (wind >= 315 || wind < 45) {
+        if (willFireSpread((long + 0.00013), (lat - 0.00013))) {
+          local_long_lat <- append(localList, list((long + 0.00013), (lat - 0.00013)))
+        }
+        if (willFireSpread(long, (lat - 0.00017))) {
+          local_long_lat <- append(localList, list(long, (lat - 0.00017)))
+        }
+        if (willFireSpread((long - 0.00013), (lat - 0.00013))) {
+          local_long_lat <- append(localList, list((long - 0.00013), (lat - 0.00013)))
+        }
+      }
+      
+      # If the wind is blowing West
+      if (wind >= 45 && wind < 135) {
+        if (willFireSpread((long - 0.00013), (lat - 0.00013))) {
+          local_long_lat <- append(localList, list((long - 0.00013), (lat - 0.00013)))
+        }
+        if (willFireSpread((long - 0.000215), lat)) {
+          local_long_lat <- append(localList, list((long - 0.000215), lat))
+        }
+        if (willFireSpread((long - 0.00013), (lat + 0.00013))) {
+          local_long_lat <- append(localList, list((long - 0.00013), (lat + 0.00013)))
+        }
+      }
+    }
+  }
+  
+  return(local_long_lat <- append(local_long_lat, fireGrow(local_long_lat, (count - 1))))
 }

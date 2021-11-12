@@ -9,7 +9,8 @@ source("predict-functions.R")
 Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
 
 long <- 0.0
-lati <- 0.0
+lat <- 0.0
+long_lat_list <- list()
 
 ui <- fluidPage(
   tags$head(
@@ -49,16 +50,16 @@ server <- function(input, output, session) {
                                  id))
     
     long <<- click$lng
-    lati <<- click$lat
+    lat <<- click$lat
     print("")
     round_any(long, .1, f = floor) + .05
-    round_any(lati, .1, f = floor) + .05
+    round_any(lat, .1, f = floor) + .05
     print("")
     print("Coords are:")
     print("Long: ") 
     print(long)
     print("Lat: ") 
-    print(lati)
+    print(lat)
     
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
   })
@@ -69,21 +70,24 @@ server <- function(input, output, session) {
       clearMarkers()
     
     
-    if (willFireStart(long, lati)) {
+    if (willFireStart(long, lat)) {
+      long_lat_list <- append(long_lat_list, list(long, lat))
+      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 1))
+      
       leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+        addCircles(lng = long, lat = lat, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
       
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
-      
-      fireGrow(long, lati)
+
+      print(long_lat_list)
     } else {
       content <- paste(sep = "<br/>",
           "Fire will not start.",
           "Try a new location."
           )
       leafletProxy("map") %>% 
-        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
+        addPopups(long, lat, content, options = popupOptions((closeButton = TRUE)))
     }
   })
   
