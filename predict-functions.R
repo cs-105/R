@@ -25,101 +25,82 @@ willFireStart <- function(long, lat) {
     
     if(historical_weather$list[[4]]$wind$speed > 1.0 || historical_weather$list[[4]]$wind$speed < 3.0) { 
       fireThreshold <- fireThreshold+0.1 
-      return(fireThreshold)
     }
     else if(historical_weather$list[[4]]$wind$speed > 3.1 || historical_weather$list[[4]]$wind$speed < 5.0) { 
       fireThreshold <- fireThreshold+0.2
-      return(fireThreshold)
     }
     else if(historical_weather$list[[4]]$wind$speed > 5.1 || historical_weather$list[[4]]$wind$speed < 7.0) { 
       fireThreshold <- fireThreshold+0.25 
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$wind$speed > 7.1 || historical_weather$list[[4]]$wind$speed < 9.0) { 
       fireThreshold <- fireThreshold+0.3 
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$wind$speed > 5.1 || historical_weather$list[[4]]$wind$speed < 11.0) { 
       fireThreshold <- fireThreshold+.35 
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$wind$speed > 11.5 || historical_weather$list[[4]]$wind$speed < 13.0) { 
       fireThreshold <- fireThreshold+.37 
-      return(fireThreshold)
     } 
     #HUMIDITY 
     else if(historical_weather$list[[4]]$main$humidity > 30 || historical_weather$list[[4]]$wind$speed < 40) { 
       fireThreshold <- fireThreshold+.25
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$main$humidity > 50 || historical_weather$list[[4]]$wind$speed < 70) { 
       fireThreshold <- fireThreshold+.15
-      return(fireThreshold)
     }
     else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$wind$speed < 100) { 
       fireThreshold <- fireThreshold+.1
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$wind$speed < 100) { 
       fireThreshold <- fireThreshold+.1
-      return(fireThreshold)
     } 
     #TEMP
     else if(historical_weather$list[[1]]$main$temp > 90 || historical_weather$list[[1]]$main$temp < 100) { 
       fireThreshold <- fireThreshold+.45
-      return(fireThreshold)
     } #VERY HIGH - RED FLAG IN JUST TEMP ALONE
     else if(historical_weather$list[[4]]$main$temp > 80 || historical_weather$list[[4]]$main$temp < 89) { 
       fireThreshold <- fireThreshold+.4
-      return(fireThreshold)
     }  
     else if(historical_weather$list[[4]]$main$temp > 70 || historical_weather$list[[4]]$main$temp < 79) { 
       fireThreshold <- fireThreshold+.3
-      return(fireThreshold)
     } 
     else if(historical_weather$list[[4]]$main$temp > 60 || historical_weather$list[[4]]$main$temp < 69) { 
       fireThreshold <- fireThreshold+.2
-      return(fireThreshold)
     }
     else if(historical_weather$list[[4]]$main$temp > 40 || historical_weather$list[[4]]$main$temp < 59) { 
-      fireThreshold <- fireThreshold+.11
-      return(fireThreshold) } 
+      fireThreshold <- fireThreshold+.11 } 
     
-    else { (historical_weather$list[[4]]$main$temp < 39) 
-      fireThreshold <- fireThreshold+.05}
-    
-    if(fireThreshold >= 1) {
-      return(TRUE)
-    }
-    else { 
-      return(FALSE)
+    else if (historical_weather$list[[4]]$main$temp < 39) {
+      fireThreshold <- fireThreshold+.05 
+      
+      }
+    else {
     }
     
-    # if (is.null(vegetation) || vegetation <- .25) {
-    #   return(FALSE)
-    # }
-
+    
+    
+    
     print("Wind Speed:")
     print(historical_weather$list[[4]]$wind$speed)
     print("Wind Direction:")
-    print(historical_weather$list[[4]]$wind$deg)
     print("Predicted Fire Threshold: ")
-    print(FireThreshold)
+    print(fireThreshold)
+    # print("Vegetation:")
+    # print(getVegetation(long, lat))
+    
+    if(fireThreshold >= 1) {
+      return(TRUE)
+      
+    }
+    else { 
+      return(FALSE)}
+    
   }, error = function(e) {
     start <- FALSE
   }, warning = function(w) {
     start <- FALSE
   })
   
-  
-  
-  print(" ")
-  print("Long: ")
-  print(long)
-  print("Lat: ")
-  print(lat)
-  # print("Vegetation:")
-  # print(getVegetation(long, lat))
   return(start)
 }
 
