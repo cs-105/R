@@ -1,42 +1,26 @@
 library(shiny)
 library(leaflet)
 library(shinyjs)
+library(owmr)
+library(plyr)
 
-js_save_map_instance <- HTML(
-  paste(
-    "var mapsPlaceholder = [];",
-    "L.Map.addInitHook(function () {",
-    "   mapsPlaceholder.push(this); // Use whatever global scope variable you like.",
-    "});", sep = "\n"
-  )
-)
+source("predict-functions.R")
 
-js_open_popup <- HTML(
-  paste("function open_popup(id) {",
-        "   console.log('open popup for ' + id);",
-        "   mapsPlaceholder[0].eachLayer(function(l) {",
-        "      if (l.options && l.options.layerId == id) {",
-        "         l.openPopup();",
-        "      }",
-        "   });",
-        "}", sep = "\n"
-  )
-)
+Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
+
+long <- 0.0
+lat <- 0.0
+long_lat_list <- list()
 
 ui <- fluidPage(
   tags$head(
-    tags$script(type = "text/javascript",
-                js_save_map_instance,
-                js_open_popup),
+    tags$script(type = "text/javascript"),
     useShinyjs()
   ),
-  wellPanel(
-    fluidRow(
-      sliderInput("lng", "Longitude:", -126, -66, -126, 0.01),
-      sliderInput("lat", "Latitude:", 24, 50, 24, 0.01),
-      actionButton("add", "Add Marker")
-    )
-  ),
+  fluidRow(
+      actionButton("startFire", "Start Fire"),
+      actionButton("endFires", "End Fire(s)")
+    ),
   fluidRow(
     leafletOutput("map")
   )
@@ -46,19 +30,74 @@ server <- function(input, output, session) {
   map <- leaflet() %>%
     addTiles() %>%
     fitBounds(-124.848974, 24.396308, -66.885444, 49.384358)
+    
   
   output$map <- renderLeaflet(
     map
   )
   
-  observeEvent(input$add, {
-    id <- paste0("marker", input$add)
+  observeEvent(input$map_click, {
+    id <- paste0("marker", input$map_click)
+    click <- input$map_click
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
     leafletProxy("map") %>%
-      addMarkers(input$lng, input$lat, id,
+      addMarkers(click$lng, click$lat, id,
                  "mymarkers",
-                 popup = sprintf("%.2f / %.2f: %s", input$lng, input$lat,
+                 popup = sprintf("%.2f / %.2f: %s", click$lng, click$lat,
                                  id))
+    
+    long <<- click$lng
+    lat <<- click$lat
+    print("")
+    round_any(long, .1, f = floor) + .05
+    round_any(lat, .1, f = floor) + .05
+    print("")
+    print("Coords are:")
+    print("Long: ") 
+    print(long)
+    print("Lat: ") 
+    print(lat)
+    
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
+  })
+  
+  observeEvent(input$startFire, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    
+    if (willFireStart(long, lat)) {
+      long_lat_list <- append(long_lat_list, list(long, lat))
+      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 1))
+      
+      leafletProxy("map") %>% 
+        addCircles(lng = long, lat = lat, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+      
+      leafletProxy("map") %>% 
+        sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
+
+      print(long_lat_list)
+    } else {
+      content <- paste(sep = "<br/>",
+          "Fire will not start.",
+          "Try a new location."
+          )
+      leafletProxy("map") %>% 
+        addPopups(long, lat, content, options = popupOptions((closeButton = TRUE)))
+    }
+  })
+  
+  observeEvent(input$endFires, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    leafletProxy("map") %>% 
+      clearGroup("fires")
   })
 }
 
