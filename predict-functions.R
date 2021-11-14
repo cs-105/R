@@ -42,20 +42,20 @@ willFireStart <- function(long, lat) {
       fireThreshold <- fireThreshold+.37 
     } 
     #HUMIDITY 
-    else if(historical_weather$list[[4]]$main$humidity > 30 || historical_weather$list[[4]]$wind$speed < 40) { 
+    if(historical_weather$list[[4]]$main$humidity > 30 || historical_weather$list[[4]]$main$humidity < 40) { 
       fireThreshold <- fireThreshold+.25
     } 
-    else if(historical_weather$list[[4]]$main$humidity > 50 || historical_weather$list[[4]]$wind$speed < 70) { 
+    else if(historical_weather$list[[4]]$main$humidity > 50 || historical_weather$list[[4]]$main$humidity < 70) { 
       fireThreshold <- fireThreshold+.15
     }
-    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$wind$speed < 100) { 
+    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$main$humidity < 100) { 
       fireThreshold <- fireThreshold+.1
     } 
-    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$wind$speed < 100) { 
+    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$main$humidity < 100) { 
       fireThreshold <- fireThreshold+.1
     } 
     #TEMP
-    else if(historical_weather$list[[1]]$main$temp > 90 || historical_weather$list[[1]]$main$temp < 100) { 
+    if(historical_weather$list[[4]]$main$temp > 90 || historical_weather$list[[4]]$main$temp < 100) { 
       fireThreshold <- fireThreshold+.45
     } #VERY HIGH - RED FLAG IN JUST TEMP ALONE
     else if(historical_weather$list[[4]]$main$temp > 80 || historical_weather$list[[4]]$main$temp < 89) { 
@@ -70,8 +70,9 @@ willFireStart <- function(long, lat) {
     else if(historical_weather$list[[4]]$main$temp > 40 || historical_weather$list[[4]]$main$temp < 59) { 
       fireThreshold <- fireThreshold+.11 } 
     
-    else { (historical_weather$list[[4]]$main$temp < 39) 
-      fireThreshold <- fireThreshold+.05 }
+    else {
+      fireThreshold <- fireThreshold+.05 
+    }
   
     
     
@@ -79,6 +80,7 @@ willFireStart <- function(long, lat) {
     print("Wind Speed:")
     print(historical_weather$list[[4]]$wind$speed)
     print("Wind Direction:")
+    print(historical_weather$list[[4]]$wind$deg)
     print("Predicted Fire Threshold: ")
     print(fireThreshold)
     
