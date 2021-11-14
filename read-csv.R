@@ -1,5 +1,6 @@
 readVeg <- function() {
-  return(read.csv(file = "vegetation.csv", row.names = 1, header = TRUE, check.names = FALSE))
+  vegetableFile <- read.csv(file = "vegetation.csv", row.names = 1, header = TRUE, check.names = FALSE)
+  return(vegetableFile)
 }
 
 getVegetation <- function(long, lat) {
