@@ -70,13 +70,9 @@ willFireStart <- function(long, lat) {
     else if(historical_weather$list[[4]]$main$temp > 40 || historical_weather$list[[4]]$main$temp < 59) { 
       fireThreshold <- fireThreshold+.11 } 
     
-    else if (historical_weather$list[[4]]$main$temp < 39) {
-      fireThreshold <- fireThreshold+.05 
-      
-      }
-    else {
-    }
-    
+    else { (historical_weather$list[[4]]$main$temp < 39) 
+      fireThreshold <- fireThreshold+.05 }
+  
     
     
     
@@ -85,6 +81,14 @@ willFireStart <- function(long, lat) {
     print("Wind Direction:")
     print("Predicted Fire Threshold: ")
     print(fireThreshold)
+    
+    
+    
+    print(" ")
+    print("Long: ")
+    print(long)
+    print("Lat: ")
+    print(lat)
     # print("Vegetation:")
     # print(getVegetation(long, lat))
     
