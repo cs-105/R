@@ -81,6 +81,11 @@ server <- function(input, output, session) {
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
 
       print(long_lat_list)
+      content <- paste(sep = "<br/>",
+                       "Fire will start.",
+                       "Fire will spread"
+      )
+      
     } else {
       content <- paste(sep = "<br/>",
           "Fire will not start.",
