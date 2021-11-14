@@ -22,6 +22,19 @@ ui <- fluidPage(
     ),
   fluidRow(
     leafletOutput("map")
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("setHours", "Hours:",
+                  min = 0, max = 96,
+                  value = 0)
+    ),
+    mainPanel(
+      tableOutput("values")
+    )
+  ),
+  fluidRow(
+    actionButton("updateFire", "Burn"),
   )
 )
 
@@ -63,6 +76,45 @@ server <- function(input, output, session) {
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
   })
   
+  observeEvent(input$updateFire, {
+    print(input$setHours)
+    
+    hours <<- input$setHours
+    
+    radius <<- 0.00015*hours
+    
+    # North wind 0
+    # West wind 90
+    # South wind 180
+    # East wind 270
+    wind_dir <<- pi/2
+    
+    for(i in 1:(hours*5)){
+      
+      deg <<- i*2*pi/(hours*5)
+      
+      x <<- cos(i*2*pi/(hours*5))*radius*1.25
+      y <<- sin(i*2*pi/(hours*5))*radius
+        
+      # wo = wind offset
+      print('wo')
+      wo_x <<- (cos(deg)+1)/(cos(wind_dir)+1)/1
+      print(wo_x)
+      if(deg < 90 | deg > 270){
+        wo_x <<- x*wo_x/10
+      }else{
+        wo_x <<- -x*wo_x/10
+      }
+      wo_y <<- (sin(deg)*radius)/20
+      
+      new_x <<- x + wo_x
+
+      leafletProxy("map") %>% 
+        addCircles(lng = long+x, lat = lati+y, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+    }
+    
+  })
+  
   observeEvent(input$startFire, {
     
     leafletProxy("map") %>% 
@@ -72,7 +124,7 @@ server <- function(input, output, session) {
     if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
         addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
-      
+    
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
       
