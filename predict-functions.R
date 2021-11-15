@@ -9,6 +9,7 @@ API_key = "ac66c8209bdf887068a2a79e4fdbca33"
 willFireStart <- function(long, lat) {
   start <- TRUE
   fireThreshold <- 0
+  
   tryCatch({
     url <-
       paste0(
@@ -23,65 +24,58 @@ willFireStart <- function(long, lat) {
     vegitation <- (getVegetation(long, lat))
     
     print(historical_weather)
-    ##FIRE THRESHOLD 
+    ##FIRE THRESHOLD STATEMENTS
     #WIND
+    
     if(historical_weather$list[[4]]$wind$speed > 1.0 || historical_weather$list[[1]]$wind$speed < 3.0) { 
-      fireThreshold <- fireThreshold+0.1}
+      fireThreshold <- fireThreshold+0.05 }
     else if(historical_weather$list[[4]]$wind$speed > 3.1 || historical_weather$list[[1]]$wind$speed < 5.0) { 
-      fireThreshold <- fireThreshold+0.15}
+      fireThreshold <- fireThreshold+0.1 }
     else if(historical_weather$list[[4]]$wind$speed > 5.1 || historical_weather$list[[1]]$wind$speed < 7.0) { 
-      fireThreshold <- fireThreshold+0.2} 
+      fireThreshold <- fireThreshold+0.15 } 
     else if(historical_weather$list[[4]]$wind$speed > 7.1 || historical_weather$list[[1]]$wind$speed < 9.0) { 
-      fireThreshold <- fireThreshold+0.25} 
+      fireThreshold <- fireThreshold+0.18 } 
     else if(historical_weather$list[[4]]$wind$speed > 9.1 || historical_weather$list[[1]]$wind$speed < 11.0) { 
-      fireThreshold <- fireThreshold+.22 } 
+      fireThreshold <- fireThreshold+.2 } 
     else if(historical_weather$list[[4]]$wind$speed > 11.1 || historical_weather$list[[1]]$wind$speed < 13.0) { 
       fireThreshold <- fireThreshold+0.25 } 
-    
     #HUMIDITY 
     if(historical_weather$list[[4]]$main$humidity > 30 || historical_weather$list[[1]]$main$humidity < 40) { 
-      fireThreshold <- fireThreshold+0.25 } 
-    else if(historical_weather$list[[4]]$main$humidity > 41 || historical_weather$list[[1]]$main$humidity < 70) { 
-      fireThreshold <- fireThreshold+0.20 }
-    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[1]]$main$humidity < 100) { 
       fireThreshold <- fireThreshold+0.15 } 
+    else if(historical_weather$list[[4]]$main$humidity > 41 || historical_weather$list[[1]]$main$humidity < 70) { 
+      fireThreshold <- fireThreshold+0.10 }
+    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[1]]$main$humidity < 100) { 
+      fireThreshold <- fireThreshold+0.05 } 
     else if(historical_weather$list[[4]]$main$humidity > 101 || historical_weather$list[[1]]$main$humidity < 200) { 
-      fireThreshold <- fireThreshold+0.10 } 
-    if(historical_weather$list[[4]]$main$humidity > 30 || historical_weather$list[[4]]$main$humidity < 40) { 
-      fireThreshold <- fireThreshold+.25 } 
-    else if(historical_weather$list[[4]]$main$humidity > 50 || historical_weather$list[[4]]$main$humidity < 70) { 
-      fireThreshold <- fireThreshold+.15}
-    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$main$humidity < 100) { 
-      fireThreshold <- fireThreshold+.1 } 
-    else if(historical_weather$list[[4]]$main$humidity > 71 || historical_weather$list[[4]]$main$humidity < 100) { 
-      fireThreshold <- fireThreshold+.1 } 
+      fireThreshold <- fireThreshold+0.03 } 
     
     #TEMP
     if(historical_weather$list[[1]]$main$temp > 200 || historical_weather$list[[1]]$main$temp < 300) { 
-      fireThreshold <- fireThreshold+.35 }
+      fireThreshold <- fireThreshold+.38 }
     else if(historical_weather$list[[1]]$main$temp > 100 || historical_weather$list[[1]]$main$temp < 200) { 
       fireThreshold <- fireThreshold+0.35 }      
     else if(historical_weather$list[[1]]$main$temp > 90 || historical_weather$list[[1]]$main$temp < 99) { 
-      fireThreshold <- fireThreshold+0.3}
-    
+      fireThreshold <- fireThreshold+0.3 }
     else if(historical_weather$list[[4]]$main$temp > 80 || historical_weather$list[[1]]$main$temp < 89) { 
       fireThreshold <- fireThreshold+0.22 }
-    if(historical_weather$list[[4]]$main$temp > 90 || historical_weather$list[[4]]$main$temp < 100) { 
-      fireThreshold <- fireThreshold+.45  }
-    else if(historical_weather$list[[4]]$main$temp > 80 || historical_weather$list[[4]]$main$temp < 89) { 
-      fireThreshold <- fireThreshold+.4 }  
     else if(historical_weather$list[[4]]$main$temp > 70 || historical_weather$list[[1]]$main$temp < 79) { 
       fireThreshold <- fireThreshold+.2 } 
     else if(historical_weather$list[[4]]$main$temp > 60 || historical_weather$list[[1]]$main$temp < 69) { 
-      fireThreshold <- fireThreshold+.18  }
+      fireThreshold <- fireThreshold+.15 }
     else if(historical_weather$list[[4]]$main$temp > 40 || historical_weather$list[[1]]$main$temp < 59) { 
-      fireThreshold <- fireThreshold+.15  }
+      fireThreshold <- fireThreshold+.1  }
+    else if(historical_weather$list[[4]]$main$temp > 20 || historical_weather$list[[1]]$main$temp < 39) { 
+      fireThreshold <- fireThreshold+.05  }
+    else if(historical_weather$list[[4]]$main$temp > 10 || historical_weather$list[[1]]$main$temp < 19) { 
+      fireThreshold <- fireThreshold+.02 }
+    else if(historical_weather$list[[4]]$main$temp > 0 || historical_weather$list[[1]]$main$temp < 9) { 
+      fireThreshold <- fireThreshold+.0 }
     
     #VEGITATION
     if(vegitation < 0.9999 || vegitation > 0.70) { 
       fireThreshold <- fireThreshold+0.4 } 
     else if(vegitation < 0.69 || vegitation > 0.50) {
-      fireThreshold <- fireThreshold+0.35} 
+      fireThreshold <- fireThreshold+0.35 } 
     else if(vegitation < 0.49 || vegitation > 0.25) {
       fireThreshold <- fireThreshold+0.3 } 
     else if(vegitation < 0.25 || vegitation > 0.10) {
@@ -93,7 +87,7 @@ willFireStart <- function(long, lat) {
     else if(vegitation < 0.09 || vegitation > 0.00001) {
       fireThreshold <- fireThreshold+0.0001 } 
     else { 
-      fireThreshold <- fireThreshold+0 }
+      fireThreshold <- fireThreshold+0.0000 } 
     
     print("Wind Speed:")
     print(historical_weather$list[[4]]$wind$speed)
@@ -121,12 +115,9 @@ willFireStart <- function(long, lat) {
     print("Wind Direction:")
     print(historical_weather$list[[1]]$wind$deg)
     
-    if(fireThreshold >= 1) {
-      return(TRUE) 
-      print("Predicted Fire Threshold: ")
-      print(fireThreshold)
+    if(fireThreshold >= 1) { 
+      return(TRUE)
     }
-    
     else { 
       return(FALSE)
     }
@@ -138,8 +129,8 @@ willFireStart <- function(long, lat) {
     start <- FALSE
   })
   return(start)
-  
 }
+
 
 willFireSpread <- function(long, lat) {
   url <-
