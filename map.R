@@ -9,8 +9,7 @@ source("predict-functions.R")
 Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
 
 long <- 0.0
-lat <- 0.0
-long_lat_list <- list()
+lati <- 0.0
 
 ui <- fluidPage(
   tags$head(
@@ -18,11 +17,24 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
-      actionButton("startFire", "Start Fire"),
-      actionButton("endFires", "End Fire(s)")
-    ),
+    actionButton("startFire", "Start Fire"),
+    actionButton("endFires", "End Fire(s)")
+  ),
   fluidRow(
     leafletOutput("map")
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("setHours", "Hours:",
+                  min = 0, max = 96,
+                  value = 0)
+    ),
+    mainPanel(
+      tableOutput("values")
+    )
+  ),
+  fluidRow(
+    actionButton("updateFire", "Burn"),
   )
 )
 
@@ -30,7 +42,7 @@ server <- function(input, output, session) {
   map <- leaflet() %>%
     addTiles() %>%
     fitBounds(-124.848974, 24.396308, -66.885444, 49.384358)
-    
+  
   
   output$map <- renderLeaflet(
     map
@@ -50,18 +62,57 @@ server <- function(input, output, session) {
                                  id))
     
     long <<- click$lng
-    lat <<- click$lat
+    lati <<- click$lat
     print("")
     round_any(long, .1, f = floor) + .05
-    round_any(lat, .1, f = floor) + .05
+    round_any(lati, .1, f = floor) + .05
     print("")
     print("Coords are:")
     print("Long: ") 
     print(long)
     print("Lat: ") 
-    print(lat)
+    print(lati)
     
     runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
+  })
+  
+  observeEvent(input$updateFire, {
+    print(input$setHours)
+    
+    hours <<- input$setHours
+    
+    radius <<- 0.00015*hours
+    
+    # North wind 0
+    # West wind 90
+    # South wind 180
+    # East wind 270
+    wind_dir <<- pi/2
+    
+    for(i in 1:(hours*5)){
+      
+      deg <<- i*2*pi/(hours*5)
+      
+      x <<- cos(i*2*pi/(hours*5))*radius*1.25
+      y <<- sin(i*2*pi/(hours*5))*radius
+      
+      # wo = wind offset
+      print('wo')
+      wo_x <<- (cos(deg)+1)/(cos(wind_dir)+1)/1
+      print(wo_x)
+      if(deg < 90 | deg > 270){
+        wo_x <<- x*wo_x/10
+      }else{
+        wo_x <<- -x*wo_x/10
+      }
+      wo_y <<- (sin(deg)*radius)/20
+      
+      new_x <<- x + wo_x
+      
+      leafletProxy("map") %>% 
+        addCircles(lng = long+x, lat = lati+y, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+    }
+    
   })
   
   observeEvent(input$startFire, {
@@ -70,29 +121,21 @@ server <- function(input, output, session) {
       clearMarkers()
     
     
-    if (willFireStart(long, lat)) {
-      long_lat_list <- append(long_lat_list, list(long, lat))
-      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 1))
-      
+    if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lat, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+        addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
       
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
-
-      print(long_lat_list)
-      content <- paste(sep = "<br/>",
-                       "Fire will start.",
-                       "Fire will spread"
-      )
       
+      fireGrow(long, lati)
     } else {
       content <- paste(sep = "<br/>",
-          "Fire will not start.",
-          "Try a new location."
-          )
+                       "Fire will not start.",
+                       "Try a new location."
+      )
       leafletProxy("map") %>% 
-        addPopups(long, lat, content, options = popupOptions((closeButton = TRUE)))
+        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
     }
   })
   
