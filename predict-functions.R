@@ -3,6 +3,7 @@ library(rjson)
 
 source("read-csv.R")
 
+<<<<<<< HEAD
 Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33")
 API_key = "ac66c8209bdf887068a2a79e4fdbca33"
 #PREDICT IF FIRE WILL START
@@ -123,11 +124,29 @@ willFireStart <- function(long, lat) {
     }
     
     
+=======
+Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33") 
+API_key = "ac66c8209bdf887068a2a79e4fdbca33"
+
+willFireStart <- function(long, lat) {
+  start <- TRUE
+  tryCatch({
+    url <- paste0("http://history.openweathermap.org/data/2.5/history/city?lat=",lat
+                  , "&lon=", long
+                  , "&type=hour"
+                  , "&cnt=4"
+                  , "&appid=", API_key)
+    historical_weather <- fromJSON(file = url)
+    print(historical_weather)
+    print("Wind Speed:")
+    print(historical_weather$list[[4]]$wind$speed)
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
   }, error = function(e) {
     start <- FALSE
   }, warning = function(w) {
     start <- FALSE
   })
+<<<<<<< HEAD
   return(start)
 }
 
@@ -226,3 +245,34 @@ fireGrow <- function(longLatList, count) {
   
   return(local_long_lat <- append(local_long_lat, fireGrow(local_long_lat, (count - 1))))
 }
+=======
+  
+  
+  
+  print(" ")
+  print("Long: ")
+  print(long)
+  print("Lat: ")
+  print(lat)
+  print("Vegetation:")
+  print(getVegetation(long, lat))
+  return(start)
+}
+
+willFireSpread <- function(long, lat) {
+  url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
+                ,"&lon=", long
+                ,"&appid=", API_key
+                ,"&cnt=", 4)
+  weather <- fromJSON(file = url)
+  vegetation <- getVegetation(long, lat)
+  
+  if (vegetation.isnull || vegetation < .2) {
+    return(FALSE)
+  }
+}
+
+fireGrow <- function(long, lat) {
+
+}
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677

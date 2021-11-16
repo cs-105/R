@@ -17,6 +17,7 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
+<<<<<<< HEAD
     actionButton("startFire", "Start Fire"),
     actionButton("endFires", "End Fire(s)")
   ),
@@ -34,6 +35,25 @@ ui <- fluidPage(
     )
   ),
   fluidRow(
+=======
+      actionButton("startFire", "Start Fire"),
+      actionButton("endFires", "End Fire(s)")
+    ),
+  fluidRow(
+    leafletOutput("map")
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("setHours", "Hours:",
+                  min = 0, max = 96,
+                  value = 0)
+    ),
+    mainPanel(
+      tableOutput("values")
+    )
+  ),
+  fluidRow(
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
     actionButton("updateFire", "Burn"),
   )
 )
@@ -42,6 +62,7 @@ server <- function(input, output, session) {
   map <- leaflet() %>%
     addTiles() %>%
     fitBounds(-124.848974, 24.396308, -66.885444, 49.384358)
+    
   
   
   output$map <- renderLeaflet(
@@ -95,7 +116,11 @@ server <- function(input, output, session) {
       
       x <<- cos(i*2*pi/(hours*5))*radius*1.25
       y <<- sin(i*2*pi/(hours*5))*radius
+<<<<<<< HEAD
       
+=======
+        
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
       # wo = wind offset
       print('wo')
       wo_x <<- (cos(deg)+1)/(cos(wind_dir)+1)/1
@@ -108,7 +133,11 @@ server <- function(input, output, session) {
       wo_y <<- (sin(deg)*radius)/20
       
       new_x <<- x + wo_x
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
       leafletProxy("map") %>% 
         addCircles(lng = long+x, lat = lati+y, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
     }
@@ -124,16 +153,26 @@ server <- function(input, output, session) {
     if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
         addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+<<<<<<< HEAD
       
+=======
+    
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
       
       fireGrow(long, lati)
     } else {
       content <- paste(sep = "<br/>",
+<<<<<<< HEAD
                        "Fire will not start.",
                        "Try a new location."
       )
+=======
+          "Fire will not start.",
+          "Try a new location."
+          )
+>>>>>>> 54c77b4caa1314fc0e39aa7833bad6defe0ab677
       leafletProxy("map") %>% 
         addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
     }
