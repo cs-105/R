@@ -1,4 +1,5 @@
 FUTURE FIRE 
+![FutureFire](https://github.com/cs-105/R/blob/Claire/FutureFireLogo.png)
 ---
 Wildfire Simulator that integrates geography with current and historical weather to form an accurate fire prediction at any selected location around the United States. Returns a visual prediction of the fire and growth over time.
 
