@@ -304,6 +304,6 @@ fireGrow <- function(longLatList, count, windDeg, localWindSpeed, localVegetatio
   }
   
   global_long_lat <- append(global_long_lat, local_long_lat)
-  return(local_long_lat <- append(local_long_lat, fireGrow(local_long_lat, (count - 1), windDirection, vegetation)))
+  return(local_long_lat <- append(local_long_lat, fireGrow(local_long_lat, (count - 1), windDirection, windSpeed, vegetation)))
 }
 

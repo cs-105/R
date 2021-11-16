@@ -85,7 +85,7 @@ server <- function(input, output, session) {
       windSpeed <- weather$list[[1]]$wind$speed
       
       long_lat_list <- append(long_lat_list, list(list(long, lat)))
-      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 1, windDirection, windSpeed, vegetation))
+      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 15, windDirection, windSpeed, vegetation))
       long_lat_list <- unique(long_lat_list)
       
       for (i in seq(2, length(long_lat_list))) {
