@@ -10,6 +10,8 @@ Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33")
 
 long <- 0.0
 lati <- 0.0
+burn_area <- c()
+grid <- c()
 
 ui <- fluidPage(
   tags$head(
@@ -77,43 +79,105 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$updateFire, {
-    print(input$setHours)
-    
+
     hours <<- input$setHours
     
-    radius <<- 0.00015*hours
+    # size of precidtion 100 x 100
     
-    # North wind 0
-    # West wind 90
-    # South wind 180
-    # East wind 270
-    wind_dir <<- pi/2
-    
-    for(i in 1:(hours*5)){
-      
-      deg <<- i*2*pi/(hours*5)
-      
-      x <<- cos(i*2*pi/(hours*5))*radius*1.25
-      y <<- sin(i*2*pi/(hours*5))*radius
-        
-      # wo = wind offset
-      print('wo')
-      wo_x <<- (cos(deg)+1)/(cos(wind_dir)+1)/1
-      print(wo_x)
-      if(deg < 90 | deg > 270){
-        wo_x <<- x*wo_x/10
-      }else{
-        wo_x <<- -x*wo_x/10
+    # number of squares x by x
+    num_sqr <- 1000
+    for(i in 1:num_sqr){
+      list_j <- c()
+      for(j in 1:num_sqr){
+        lon <- long + i/500 - 1
+        lat <- lati + j/500 - 1
+        list_j[[j]] <- list(lon, lat, 0, 0, i, j)
       }
-      wo_y <<- (sin(deg)*radius)/20
-      
-      new_x <<- x + wo_x
-
-      leafletProxy("map") %>% 
-        addCircles(lng = long+x, lat = lati+y, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+      grid[[i]] <<- list_j
     }
     
+    print('done')
+    
+    grow_fire(grid, list(list(500,500)),0)
+    
+    draw_fire()
+    
+    # for(i in seq(from=1, to=length(grid), by=50)){
+    #   for(j in seq(from=1, to=length(grid[[i]]), by=50)){
+    # 
+    #     lon <- grid[[i]][[j]][[1]]
+    #     lat <- grid[[i]][[j]][[2]]
+    # 
+    #     leafletProxy("map") %>%
+    #       addCircles(lng = lon, lat = lat, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+    # 
+    #   }
+    # }
   })
+  
+  grow_fire <- function(grid, f_s, d){
+    if(d>10){
+      return()
+    }
+    new_f_s <- c()
+    
+    for(s in f_s){
+      
+      s_i = s[[1]]
+      s_j = s[[2]]
+      
+      if(grid[[s_i+1]][[s_j+1]][[3]] == 0 & grid[[s_i+1]][[s_j+1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i+1, s_j+1)))
+        grid[[s_i+1]][[s_j+1]][[3]] <- 1
+      }
+      if(grid[[s_i+1]][[s_j-1]][[3]] == 0 & grid[[s_i+1]][[s_j-1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i+1, s_j-1)))
+        grid[[s_i+1]][[s_j-1]][[3]] <- 1
+      }
+      if(grid[[s_i-1]][[s_j+1]][[3]] == 0 & grid[[s_i-1]][[s_j+1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i-1, s_j+1)))
+        grid[[s_i-1]][[s_j+1]][[3]] <- 1
+      }
+      if(grid[[s_i-1]][[s_j-1]][[3]] == 0 & grid[[s_i-1]][[s_j-1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i-1, s_j-1)))
+        grid[[s_i-1]][[s_j-1]][[3]] <- 1
+      }
+      if(grid[[s_i+1]][[s_j]][[3]] == 0 & grid[[s_i+1]][[s_j]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i+1, s_j)))
+        grid[[s_i+1]][[s_j]][[3]] <- 1
+      }
+      if(grid[[s_i]][[s_j+1]][[3]] == 0 & grid[[s_i]][[s_j+1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i, s_j+1)))
+        grid[[s_i]][[s_j+1]][[3]] <- 1
+      }
+      if(grid[[s_i-1]][[s_j]][[3]] == 0 & grid[[s_i-1]][[s_j]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i-1, s_j)))
+        grid[[s_i-1]][[s_j]][[3]] <- 1
+      }
+      if(grid[[s_i]][[s_j-1]][[3]] == 0 & grid[[s_i]][[s_j-1]][[4]] == 0){
+        new_f_s <- append(new_f_s, list(list(s_i, s_j-1)))
+        grid[[s_i]][[s_j-1]][[3]] <- 1
+      }
+    }
+    
+    burn_area <<- append(burn_area, new_f_s)
+
+    grow_fire(grid, new_f_s, d+1)
+  }
+  
+  draw_fire <- function(){
+    for(pos in burn_area){
+      lon <- grid[[pos[[1]]]][[pos[[2]]]][[1]]
+      lat <- grid[[pos[[1]]]][[pos[[2]]]][[2]]
+      leafletProxy("map") %>%
+        addCircles(lng = lon, lat = lat, weight = 1, radius = 80, color = "#FF2C00", group = "fires")
+      date_time<-Sys.time()
+    }
+  }
+  
+  will_spread <- function(cell1, cell2){
+    
+  }
   
   observeEvent(input$startFire, {
     
