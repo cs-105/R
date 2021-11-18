@@ -21,9 +21,10 @@ willFireStart <- function(long, lat, localVegetation) {
       )
     historical_weather <- fromJSON(file = url)
     print(historical_weather)
-    for(i in seq(from=1, to=4, by=1)){
-      #  stuff, such as
-      print(i)
+    ##RAIN - IF ITS RAINING, RETURN FALSE
+    rain <- historical_weather$list[[1]]$weather[[1]]$description 
+    if(rain == "rain") { 
+      return(FALSE) 
     }
     if(historical_weather$list[[1]]$wind$speed > 1.0 || historical_weather$list[[1]]$wind$speed < 3.0) { 
       fireThreshold <- fireThreshold+0.05 }
@@ -111,7 +112,7 @@ willFireStart <- function(long, lat, localVegetation) {
     return(FALSE)
   }
   
-  
+  print(rain)
   print(" ")
   print("Long: ")
   print(long)
