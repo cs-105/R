@@ -24,6 +24,19 @@ ui <- fluidPage(
     ),
   fluidRow(
     leafletOutput("map")
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("setHours", "Hours:",
+                  min = 0, max = 96,
+                  value = 0)
+    ),
+    mainPanel(
+      tableOutput("values")
+    )
+  ),
+  fluidRow(
+    actionButton("updateFire", "Burn"),
   )
 )
 
@@ -69,38 +82,13 @@ server <- function(input, output, session) {
     
     leafletProxy("map") %>% 
       clearMarkers()
-    vegetation <- getVegetation(long, lat)
+    vegetation <- readVeg()
     
     if (willFireStart(long, lat, vegetation)) {
-      url <-
-        paste0(
-          "http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
-          , "&lon=", long
-          , "&appid=", API_key
-          , "&cnt=", 1
-          , "&units=imperial"
-        )
-      weather <- fromJSON(file = url)
-      windDirection <- weather$list[[1]]$wind$deg
-      windSpeed <- weather$list[[1]]$wind$speed
-      
-      long_lat_list <- append(long_lat_list, list(list(long, lat)))
-      long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, 15, windDirection, windSpeed, vegetation))
-      long_lat_list <- unique(long_lat_list)
-      
-      for (i in seq(2, length(long_lat_list))) {
-        
-          long <- long_lat_list[[i-1]][[1]]
-          lat <- long_lat_list[[i-1]][[2]]
-          
-          leafletProxy("map") %>% 
-            addCircles(lng = long, lat = lat, weight = 1, radius = 20, color = "#FF2C00", group = "fires")
-      }
-      
+    
       leafletProxy("map") %>% 
-        sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
-
-      print(long_lat_list)
+        addCircles(lng = long, lat = lat, weight = 1, radius = 20, color = "#FF2C00", group = "fires")
+      
     } else {
       content <- paste(sep = "<br/>",
           "Fire will not start.",
@@ -108,6 +96,41 @@ server <- function(input, output, session) {
           )
       leafletProxy("map") %>% 
         addPopups(long, lat, content, options = popupOptions((closeButton = TRUE)))
+    }
+  })
+  
+  observeEvent(input$updateFire, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    leafletProxy("map") %>% 
+      clearGroup("fires")
+    
+    print(input$setHours)
+    
+    vegetation <- readVeg()
+    
+    url <-
+      paste0(
+        "http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lat
+        , "&lon=", long
+        , "&appid=", API_key
+        , "&cnt=", input$setHours
+        , "&units=imperial"
+      )
+    weather <- fromJSON(file = url)
+    
+    long_lat_list <- append(long_lat_list, list(list(long, lat)))
+    long_lat_list <- append(long_lat_list, fireGrow(long_lat_list, input$setHours, weather, vegetation, 1))
+    long_lat_list <- unique(long_lat_list)
+    
+    for (i in seq(2, length(long_lat_list))) {
+      
+      long <- long_lat_list[[i-1]][[1]]
+      lat <- long_lat_list[[i-1]][[2]]
+      
+      leafletProxy("map") %>% 
+        addCircles(lng = long, lat = lat, weight = 1, radius = 20, color = "#FF2C00", group = "fires")
     }
   })
   
