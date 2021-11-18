@@ -21,11 +21,18 @@ willFireStart <- function(long, lat, localVegetation) {
       )
     historical_weather <- fromJSON(file = url)
     print(historical_weather)
+    
     ##RAIN - IF ITS RAINING, RETURN FALSE
-    rain <- historical_weather$list[[1]]$weather[[1]]$description 
-    if(rain == "rain") { 
+    ##RAIN all historical counts 
+    rain1 <- historical_weather$list[[1]]$weather[[1]]$description 
+    rain2 <- historical_weather$list[[2]]$weather[[1]]$description 
+    rain3 <- historical_weather$list[[3]]$weather[[1]]$description 
+    rain3 <- historical_weather$list[[4]]$weather[[1]]$description 
+    
+    if(rain1 || rain2 || rain3 || rain4 == "rain") { 
       return(FALSE) 
     }
+    ##WIND
     if(historical_weather$list[[1]]$wind$speed > 1.0 || historical_weather$list[[1]]$wind$speed < 3.0) { 
       fireThreshold <- fireThreshold+0.05 }
     else if(historical_weather$list[[1]]$wind$speed > 3.1 || historical_weather$list[[1]]$wind$speed < 5.0) { 
@@ -68,7 +75,6 @@ willFireStart <- function(long, lat, localVegetation) {
       fireThreshold <- fireThreshold+.02 }
     else if(historical_weather$list[[1]]$main$temp > 0 || historical_weather$list[[1]]$main$temp < 9) { 
       fireThreshold <- fireThreshold+.0 }
-    
     #ATMOSPHERIC PRESSURE-10.2
     #Conversion: 10.2PSI(10'000 feet fire will not burn) - 689.4757293178 hPa
     if(historical_weather$list[[1]]$main$pressure < 689.4757293178) { 
