@@ -85,12 +85,12 @@ server <- function(input, output, session) {
     # size of precidtion 100 x 100
     
     # number of squares x by x
-    num_sqr <- 1000
+    num_sqr <- 100
     for(i in 1:num_sqr){
       list_j <- c()
       for(j in 1:num_sqr){
-        lon <- long + i/500 - 1
-        lat <- lati + j/500 - 1
+        lon <- long + i/50 - 1
+        lat <- lati + j/50 - 1
         list_j[[j]] <- list(lon, lat, 0, 0, i, j)
       }
       grid[[i]] <<- list_j
@@ -98,7 +98,7 @@ server <- function(input, output, session) {
     
     print('done')
     
-    grow_fire(grid, list(list(500,500)),0)
+    grow_fire(grid, list(list(50,50)),0)
     
     draw_fire()
     
@@ -116,7 +116,7 @@ server <- function(input, output, session) {
   })
   
   grow_fire <- function(grid, f_s, d){
-    if(d>10){
+    if(d>40){
       return()
     }
     new_f_s <- c()
@@ -127,40 +127,58 @@ server <- function(input, output, session) {
       s_j = s[[2]]
       
       if(grid[[s_i+1]][[s_j+1]][[3]] == 0 & grid[[s_i+1]][[s_j+1]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i+1, s_j+1)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j+1]])){
+          new_f_s <- append(new_f_s, list(list(s_i+1, s_j+1)))
+        }
         grid[[s_i+1]][[s_j+1]][[3]] <- 1
       }
       if(grid[[s_i+1]][[s_j-1]][[3]] == 0 & grid[[s_i+1]][[s_j-1]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i+1, s_j-1)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j-1]])){
+          new_f_s <- append(new_f_s, list(list(s_i+1, s_j-1)))
+        }
         grid[[s_i+1]][[s_j-1]][[3]] <- 1
       }
       if(grid[[s_i-1]][[s_j+1]][[3]] == 0 & grid[[s_i-1]][[s_j+1]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i-1, s_j+1)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j+1]])){
+          new_f_s <- append(new_f_s, list(list(s_i-1, s_j+1)))
+        }
         grid[[s_i-1]][[s_j+1]][[3]] <- 1
       }
       if(grid[[s_i-1]][[s_j-1]][[3]] == 0 & grid[[s_i-1]][[s_j-1]][[4]] == 0){
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j-1]])){
         new_f_s <- append(new_f_s, list(list(s_i-1, s_j-1)))
+        }
         grid[[s_i-1]][[s_j-1]][[3]] <- 1
       }
       if(grid[[s_i+1]][[s_j]][[3]] == 0 & grid[[s_i+1]][[s_j]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i+1, s_j)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j]])){
+          new_f_s <- append(new_f_s, list(list(s_i+1, s_j)))
+        }
         grid[[s_i+1]][[s_j]][[3]] <- 1
       }
       if(grid[[s_i]][[s_j+1]][[3]] == 0 & grid[[s_i]][[s_j+1]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i, s_j+1)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i]][[s_j+1]])){
+          new_f_s <- append(new_f_s, list(list(s_i, s_j+1)))
+        }
         grid[[s_i]][[s_j+1]][[3]] <- 1
       }
       if(grid[[s_i-1]][[s_j]][[3]] == 0 & grid[[s_i-1]][[s_j]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i-1, s_j)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j]])){
+          new_f_s <- append(new_f_s, list(list(s_i-1, s_j)))
+        }
         grid[[s_i-1]][[s_j]][[3]] <- 1
       }
       if(grid[[s_i]][[s_j-1]][[3]] == 0 & grid[[s_i]][[s_j-1]][[4]] == 0){
-        new_f_s <- append(new_f_s, list(list(s_i, s_j-1)))
+        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i]][[s_j-1]])){
+          new_f_s <- append(new_f_s, list(list(s_i, s_j-1)))
+        }
         grid[[s_i]][[s_j-1]][[3]] <- 1
       }
     }
     
     burn_area <<- append(burn_area, new_f_s)
+    
+    print(d)
 
     grow_fire(grid, new_f_s, d+1)
   }
@@ -171,12 +189,17 @@ server <- function(input, output, session) {
       lat <- grid[[pos[[1]]]][[pos[[2]]]][[2]]
       leafletProxy("map") %>%
         addCircles(lng = lon, lat = lat, weight = 1, radius = 80, color = "#FF2C00", group = "fires")
-      date_time<-Sys.time()
     }
   }
   
   will_spread <- function(cell1, cell2){
-    
+    lon <- cell2[[1]]
+    lat <- cell2[[2]]
+    vegetation <- getVegetation(lon, lat)
+    if (is.null(vegetation) || vegetation < .325) {
+      return(FALSE)
+    }
+    return(TRUE)
   }
   
   observeEvent(input$startFire, {
