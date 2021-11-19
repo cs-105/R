@@ -83,10 +83,7 @@ server <- function(input, output, session) {
   observeEvent(input$updateFire, {
 
     hours <<- input$setHours
-    
-    # size of precidtion 100 x 100
-    
-    # number of squares x by x
+
     for(i in 1:grid_density){
       row_i <- c()
       for(j in 1:grid_density){
@@ -117,7 +114,7 @@ server <- function(input, output, session) {
   })
   
   grow_fire <- function(grid, spread_squares, d){
-    if(d>3){
+    if(d>40){
       return()
     }
     new_spread_squares <- c()
