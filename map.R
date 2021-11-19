@@ -12,6 +12,8 @@ long <- 0.0
 lati <- 0.0
 burn_area <- c()
 grid <- c()
+directions <- list(list(1,1),list(1,-1),list(-1,1),list(-1,-1),list(1,0),list(0,1),list(-1,0),list(0,-1))
+grid_density <- 100
 
 ui <- fluidPage(
   tags$head(
@@ -85,15 +87,14 @@ server <- function(input, output, session) {
     # size of precidtion 100 x 100
     
     # number of squares x by x
-    num_sqr <- 100
-    for(i in 1:num_sqr){
-      list_j <- c()
-      for(j in 1:num_sqr){
+    for(i in 1:grid_density){
+      row_i <- c()
+      for(j in 1:grid_density){
         lon <- long + i/50 - 1
         lat <- lati + j/50 - 1
-        list_j[[j]] <- list(lon, lat, 0, 0, i, j)
+        row_i[[j]] <- list(lon, lat, 0, 0, i, j)
       }
-      grid[[i]] <<- list_j
+      grid[[i]] <<- row_i
     }
     
     print('done')
@@ -115,72 +116,37 @@ server <- function(input, output, session) {
     # }
   })
   
-  grow_fire <- function(grid, f_s, d){
-    if(d>40){
+  grow_fire <- function(grid, spread_squares, d){
+    if(d>3){
       return()
     }
-    new_f_s <- c()
+    new_spread_squares <- c()
     
-    for(s in f_s){
+    for(s in spread_squares){
+      #ss_lon is spread square indes lon
+      ss_lon = s[[1]]
+      ss_lat = s[[2]]
       
-      s_i = s[[1]]
-      s_j = s[[2]]
-      
-      if(grid[[s_i+1]][[s_j+1]][[3]] == 0 & grid[[s_i+1]][[s_j+1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j+1]])){
-          new_f_s <- append(new_f_s, list(list(s_i+1, s_j+1)))
+      for(dir in directions){
+        
+        x <- dir[[1]]
+        y <- dir[[2]]
+        
+        if(grid[[ss_lon+x]][[ss_lat+y]][[3]] == 0 & grid[[ss_lon+x]][[ss_lat+y]][[4]] < 3){
+          if(will_spread(grid[[ss_lon]][[ss_lat]], grid[[ss_lon+x]][[ss_lat+y]])){
+            new_spread_squares <- append(new_spread_squares, list(list(ss_lon+x, ss_lat+y)))
+          }
+          grid[[ss_lon+x]][[ss_lat+y]][[3]] <- 1
+          grid[[ss_lon+x]][[ss_lat+y]][[4]] <- grid[[ss_lon+x]][[ss_lat+y]][[4]]+1
         }
-        grid[[s_i+1]][[s_j+1]][[3]] <- 1
-      }
-      if(grid[[s_i+1]][[s_j-1]][[3]] == 0 & grid[[s_i+1]][[s_j-1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j-1]])){
-          new_f_s <- append(new_f_s, list(list(s_i+1, s_j-1)))
-        }
-        grid[[s_i+1]][[s_j-1]][[3]] <- 1
-      }
-      if(grid[[s_i-1]][[s_j+1]][[3]] == 0 & grid[[s_i-1]][[s_j+1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j+1]])){
-          new_f_s <- append(new_f_s, list(list(s_i-1, s_j+1)))
-        }
-        grid[[s_i-1]][[s_j+1]][[3]] <- 1
-      }
-      if(grid[[s_i-1]][[s_j-1]][[3]] == 0 & grid[[s_i-1]][[s_j-1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j-1]])){
-        new_f_s <- append(new_f_s, list(list(s_i-1, s_j-1)))
-        }
-        grid[[s_i-1]][[s_j-1]][[3]] <- 1
-      }
-      if(grid[[s_i+1]][[s_j]][[3]] == 0 & grid[[s_i+1]][[s_j]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i+1]][[s_j]])){
-          new_f_s <- append(new_f_s, list(list(s_i+1, s_j)))
-        }
-        grid[[s_i+1]][[s_j]][[3]] <- 1
-      }
-      if(grid[[s_i]][[s_j+1]][[3]] == 0 & grid[[s_i]][[s_j+1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i]][[s_j+1]])){
-          new_f_s <- append(new_f_s, list(list(s_i, s_j+1)))
-        }
-        grid[[s_i]][[s_j+1]][[3]] <- 1
-      }
-      if(grid[[s_i-1]][[s_j]][[3]] == 0 & grid[[s_i-1]][[s_j]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i-1]][[s_j]])){
-          new_f_s <- append(new_f_s, list(list(s_i-1, s_j)))
-        }
-        grid[[s_i-1]][[s_j]][[3]] <- 1
-      }
-      if(grid[[s_i]][[s_j-1]][[3]] == 0 & grid[[s_i]][[s_j-1]][[4]] == 0){
-        if(will_spread(grid[[s_i]][[s_j]], grid[[s_i]][[s_j-1]])){
-          new_f_s <- append(new_f_s, list(list(s_i, s_j-1)))
-        }
-        grid[[s_i]][[s_j-1]][[3]] <- 1
       }
     }
     
-    burn_area <<- append(burn_area, new_f_s)
+    burn_area <<- append(burn_area, new_spread_squares)
     
     print(d)
 
-    grow_fire(grid, new_f_s, d+1)
+    grow_fire(grid, new_spread_squares, d+1)
   }
   
   draw_fire <- function(){
@@ -188,7 +154,7 @@ server <- function(input, output, session) {
       lon <- grid[[pos[[1]]]][[pos[[2]]]][[1]]
       lat <- grid[[pos[[1]]]][[pos[[2]]]][[2]]
       leafletProxy("map") %>%
-        addCircles(lng = lon, lat = lat, weight = 1, radius = 80, color = "#FF2C00", group = "fires")
+        addCircles(lng = lon, lat = lat, weight = 1, radius = 500, color = "#FF2C00", group = "fires")
     }
   }
   
@@ -196,7 +162,7 @@ server <- function(input, output, session) {
     lon <- cell2[[1]]
     lat <- cell2[[2]]
     vegetation <- getVegetation(lon, lat)
-    if (is.null(vegetation) || vegetation < .325) {
+    if (is.null(vegetation) || vegetation < .2) {
       return(FALSE)
     }
     return(TRUE)
@@ -210,7 +176,7 @@ server <- function(input, output, session) {
     
     if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 10, color = "#FF2C00", group = "fires")
+        addCircles(lng = long, lat = lati, weight = 1, radius = 100, color = "#000000", group = "fires")
     
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
