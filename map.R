@@ -12,6 +12,7 @@ long <- 0.0
 lati <- 0.0
 burn_area <- c()
 grid <- c()
+weather_grid <- c()
 directions <- list(list(1,1),list(1,-1),list(-1,1),list(-1,-1),list(1,0),list(0,1),list(-1,0),list(0,-1))
 grid_density <- 100
 
@@ -29,7 +30,7 @@ ui <- fluidPage(
   ),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("setHours", "Hours:",
+      sliderInput("sethour", "hour:",
                   min = 0, max = 96,
                   value = 0)
     ),
@@ -82,7 +83,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$updateFire, {
 
-    hours <<- input$setHours
+    hour <<- input$sethour
 
     for(i in 1:grid_density){
       row_i <- c()
@@ -96,7 +97,13 @@ server <- function(input, output, session) {
     
     print('done')
     
-    grow_fire(grid, list(list(50,50)),0)
+    url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lati
+                  ,"&lon=", long
+                  ,"&appid=", API_key
+                  ,"&cnt=", 96)
+    weather <- fromJSON(file = url)
+
+    grow_fire(hour, weather, grid, list(list(50,50)),1)
     
     draw_fire()
     
@@ -113,14 +120,14 @@ server <- function(input, output, session) {
     # }
   })
   
-  grow_fire <- function(grid, spread_squares, d){
-    if(d>40){
+  grow_fire <- function(hour,weather, grid, spread_squares, d){
+    if(d>10){
       return()
     }
     new_spread_squares <- c()
     
     for(s in spread_squares){
-      #ss_lon is spread square indes lon
+      #ss_lon is spread square index lon
       ss_lon = s[[1]]
       ss_lat = s[[2]]
       
@@ -130,7 +137,7 @@ server <- function(input, output, session) {
         y <- dir[[2]]
         
         if(grid[[ss_lon+x]][[ss_lat+y]][[3]] == 0 & grid[[ss_lon+x]][[ss_lat+y]][[4]] < 3){
-          if(will_spread(grid[[ss_lon]][[ss_lat]], grid[[ss_lon+x]][[ss_lat+y]])){
+          if(will_spread(d, weather, grid[[ss_lon]][[ss_lat]], grid[[ss_lon+x]][[ss_lat+y]])){
             new_spread_squares <- append(new_spread_squares, list(list(ss_lon+x, ss_lat+y)))
           }
           grid[[ss_lon+x]][[ss_lat+y]][[3]] <- 1
@@ -143,7 +150,7 @@ server <- function(input, output, session) {
     
     print(d)
 
-    grow_fire(grid, new_spread_squares, d+1)
+    grow_fire(hour, weather, grid, new_spread_squares, d+1)
   }
   
   draw_fire <- function(){
@@ -151,18 +158,80 @@ server <- function(input, output, session) {
       lon <- grid[[pos[[1]]]][[pos[[2]]]][[1]]
       lat <- grid[[pos[[1]]]][[pos[[2]]]][[2]]
       leafletProxy("map") %>%
-        addCircles(lng = lon, lat = lat, weight = 1, radius = 500, color = "#FF2C00", group = "fires")
+        addCircles(lng = lon, lat = lat, weight = 1, radius = 800, color = "#FF2C00", group = "fires")
     }
   }
   
-  will_spread <- function(cell1, cell2){
+  will_spread <- function(hour, weather, cell1, cell2){
     lon <- cell2[[1]]
     lat <- cell2[[2]]
     vegetation <- getVegetation(lon, lat)
-    if (is.null(vegetation) || vegetation < .2) {
+    wind_speed <- weather$list[[hour]]$wind$speed
+    wind_dir <- weather$list[[hour]]$wind$deg
+    
+    x <- cell2[[1]]-cell1[[1]]
+    if(x > 0)
+      x <- 1
+    else if(x < 0)
+      x <- -1
+    else
+      x <- 0
+    
+    y <- cell2[[2]]-cell1[[2]]
+    if(y > 0)
+      y <- 1
+    else if(y < 0)
+      y <- -1
+    else
+      y <- 0
+    
+    cell_dir <- 0
+    if(x==0&y==1)
+      cell_dir <- 0
+    else if(x==1&y==1)
+      cell_dir <- 45
+    else if(x==1&y==0)
+      cell_dir <- 90
+    else if(x==1&y==-1)
+      cell_dir <- 135
+    else if(x==0&y==-1)
+      cell_dir <- 180
+    else if(x==-1&y==-1)
+      cell_dir <- 225
+    else if(x==-1&y==0)
+      cell_dir <- 270
+    else if(x==-1&y==-1)
+      cell_dir <- 315
+      
+    wind_prob <- wind_speed*(180 - abs(wind_dir - cell_dir)) / 180
+
+    rand <- sample(1:10, 1)
+    prob = round(12*vegetation*wind_prob,0)
+    
+    if (is.null(vegetation) || vegetation > 1 || prob < rand ) {
       return(FALSE)
     }
     return(TRUE)
+  }
+  
+  # get_weather <- function(weather){
+  #   for(i in seq(1, 96, 2)){
+  #     print(weather$list[[i]]$wind$speed)
+  #     print(weather$list[[i]]$wind$deg)
+  #     print(deg_to_coord(weather$list[[i]]$wind$deg))
+  #   }
+  #   
+  # }
+  
+  deg_to_coord <- function(deg){
+    list_coord <- list(list(1,1),list(1,0),list(1,-1),list(0,-1),list(-1,-1),list(-1,0),list(-1,1),list(0,1))
+    for(i in 1:7){
+      if(deg >= 22.5 & deg <= 22.5+i*45){
+        return(list_coord[[i]])
+      }else{
+        return(list_coord[[8]])
+      }
+    }
   }
   
   observeEvent(input$startFire, {
@@ -176,7 +245,7 @@ server <- function(input, output, session) {
         addCircles(lng = long, lat = lati, weight = 1, radius = 100, color = "#000000", group = "fires")
     
       leafletProxy("map") %>% 
-        sliderInput(inputId = "time", label = "Select time since inception (in hours)", min = 0, max = 96, value = 0, step = 4)
+        sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
       
       fireGrow(long, lati)
     } else {
