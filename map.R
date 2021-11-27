@@ -10,6 +10,9 @@ Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33")
 
 long <- 0.0
 lati <- 0.0
+hour <<- 0
+wind_apeed <<- 0
+wind_dir <<- 0
 burn_area <- c()
 grid <- c()
 weather_grid <- c()
@@ -32,7 +35,13 @@ ui <- fluidPage(
     sidebarPanel(
       sliderInput("sethour", "hour:",
                   min = 0, max = 96,
-                  value = 0)
+                  value = 0),
+      sliderInput("setwind", "wind:",
+                  min = 0, max = 50,
+                  value = 0),
+      sliderInput("setdir", "wind direction:",
+                  min = 0, max = 360,
+                  value = 0),
     ),
     mainPanel(
       tableOutput("values")
@@ -84,6 +93,9 @@ server <- function(input, output, session) {
   observeEvent(input$updateFire, {
 
     hour <<- input$sethour
+    wind_speed <<- input$setwind
+    wind_dir <<- input$setdir
+    
 
     for(i in 1:grid_density){
       row_i <- c()
@@ -103,7 +115,7 @@ server <- function(input, output, session) {
                   ,"&cnt=", 96)
     weather <- fromJSON(file = url)
 
-    grow_fire(hour, weather, grid, list(list(50,50)),1)
+    grow_fire(grid, list(list(50,50)),1)
     
     draw_fire()
     
@@ -120,8 +132,8 @@ server <- function(input, output, session) {
     # }
   })
   
-  grow_fire <- function(hour,weather, grid, spread_squares, d){
-    if(d>10){
+  grow_fire <- function(grid, spread_squares, d){
+    if(d>10){ # set this to round hours / 2
       return()
     }
     new_spread_squares <- c()
@@ -137,7 +149,7 @@ server <- function(input, output, session) {
         y <- dir[[2]]
         
         if(grid[[ss_lon+x]][[ss_lat+y]][[3]] == 0 & grid[[ss_lon+x]][[ss_lat+y]][[4]] < 3){
-          if(will_spread(d, weather, grid[[ss_lon]][[ss_lat]], grid[[ss_lon+x]][[ss_lat+y]])){
+          if(will_spread(grid[[ss_lon]][[ss_lat]], grid[[ss_lon+x]][[ss_lat+y]])){
             new_spread_squares <- append(new_spread_squares, list(list(ss_lon+x, ss_lat+y)))
           }
           grid[[ss_lon+x]][[ss_lat+y]][[3]] <- 1
@@ -150,7 +162,7 @@ server <- function(input, output, session) {
     
     print(d)
 
-    grow_fire(hour, weather, grid, new_spread_squares, d+1)
+    grow_fire(grid, new_spread_squares, d+1)
   }
   
   draw_fire <- function(){
@@ -162,12 +174,12 @@ server <- function(input, output, session) {
     }
   }
   
-  will_spread <- function(hour, weather, cell1, cell2){
+  will_spread <- function(cell1, cell2){
     lon <- cell2[[1]]
     lat <- cell2[[2]]
     vegetation <- getVegetation(lon, lat)
-    wind_speed <- weather$list[[hour]]$wind$speed
-    wind_dir <- weather$list[[hour]]$wind$deg
+    # wind_speed <- weather$list[[hour]]$wind$speed
+    # wind_dir <- weather$list[[hour]]$wind$deg
     
     x <- cell2[[1]]-cell1[[1]]
     if(x > 0)
@@ -203,10 +215,17 @@ server <- function(input, output, session) {
     else if(x==-1&y==-1)
       cell_dir <- 315
       
-    wind_prob <- wind_speed*(180 - abs(wind_dir - cell_dir)) / 180
-
+    # direction difference between wind and cell direction
+    dd = wind_dir - cell_dir
+    dd = (dd + 180) %% 360 - 180
+    wind_prob <- (180 - dd)/(180)
+    if(wind_speed < 5){
+      wind_prob <- wind_prob + (1 - wind_speed/10)
+      if(wind_prob > 1)
+        wind_prob <- 1
+    }
     rand <- sample(1:10, 1)
-    prob = round(12*vegetation*wind_prob,0)
+    prob = round(15*vegetation*wind_prob,0)
     
     if (is.null(vegetation) || vegetation > 1 || prob < rand ) {
       return(FALSE)
@@ -242,7 +261,7 @@ server <- function(input, output, session) {
     
     if (willFireStart(long, lati)) {
       leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 100, color = "#000000", group = "fires")
+        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
     
       leafletProxy("map") %>% 
         sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
