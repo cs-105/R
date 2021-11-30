@@ -80,10 +80,12 @@ server <- function(input, output, session) {
     if(willFireStart(long, lati)){
 
       leafletProxy("map") %>%
-        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#FF2C00", group = "fires")
-    
+        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
+
       print("Fire is starting")
       hour <<- input$sethour
+      grid <<- c()
+      burn_area <<- c()
 
       for(i in 1:grid_density){
         row_i <- c()
@@ -94,6 +96,7 @@ server <- function(input, output, session) {
         }
         grid[[i]] <<- row_i
       }
+      grid[[50]][[50]][[3]] <- 1
     
       url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lati
                   ,"&lon=", long
@@ -122,7 +125,7 @@ server <- function(input, output, session) {
   # Depth is the depth of the recursion.  How many squares deep will the fire spread to
   
   grow_fire <- function(grid, spread_squares, d, hour){
-    if(d>ceiling(hour / 2)){
+    if(d>ceiling(hour)){
       return()
     }
     new_spread_squares <- c()
