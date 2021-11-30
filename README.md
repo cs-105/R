@@ -16,7 +16,7 @@ This project is simple fire simulator
 Project is created with:
 * [R language - 4.1.2](https://www.r-project.org/)
 * [Open Weather API](https://openweathermap.org/api)
-* [Leaflet](https://leafletjs.com/) - 
+* [Leaflet](https://leafletjs.com/)
 * [Vegetation Index](https://neo.gsfc.nasa.gov/view.php?datasetId=MOD_NDVI_M)
 * [RStudio](https://www.rstudio.com/products/rstudio/download/)
 	
@@ -25,6 +25,9 @@ To run this locally
 1. Clone the project
 2. Install [R language - 4.1.2](https://www.r-project.org/), This can look different depending on your system
 3. Install [RStudio](https://www.rstudio.com/products/rstudio/download/)
+4. Open the project in RStudio
+5. Run Installations.R to download all necesary packges
+6. Run the Map.R file
 
 ```
 $ cd ../lorem
