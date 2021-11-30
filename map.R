@@ -31,8 +31,8 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("sethour", "hour:",
-                  min = 0, max = 96,
-                  value = 0),
+                  min = 1, max = 48,
+                  value = 1),
     ),
     mainPanel(
       tableOutput("values")
@@ -69,57 +69,60 @@ server <- function(input, output, session) {
     
     long <<- click$lng
     lati <<- click$lat
-    print("")
-    round_any(long, .1, f = floor) + .05
-    round_any(lati, .1, f = floor) + .05
-    print("")
-    print("Coords are:")
-    print("Long: ") 
-    print(long)
-    print("Lat: ") 
-    print(lati)
-    
-    runjs(sprintf("setTimeout(() => open_popup('%s'), 10)", id))
   })
   
   observeEvent(input$updateFire, {
-
-    hour <<- input$sethour
-    # wind_speed <<- input$setwind
-    # wind_dir <<- input$setdir
+    print("Starting burn")
     
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    if(willFireStart(long, lati)){
 
-    for(i in 1:grid_density){
-      row_i <- c()
-      for(j in 1:grid_density){
-        lon <- long + i/50 - 1
-        lat <- lati + j/50 - 1
-        row_i[[j]] <- list(lon, lat, 0, 0, i, j)
+      leafletProxy("map") %>%
+        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#FF2C00", group = "fires")
+    
+      print("Fire is starting")
+      hour <<- input$sethour
+
+      for(i in 1:grid_density){
+        row_i <- c()
+        for(j in 1:grid_density){
+          lon <- long + i/50 - 1
+          lat <- lati + j/50 - 1
+          row_i[[j]] <- list(lon, lat, 0, 0, i, j)
+        }
+        grid[[i]] <<- row_i
       }
-      grid[[i]] <<- row_i
-    }
     
-    print('done')
-    
-    url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lati
+      url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lati
                   ,"&lon=", long
                   ,"&appid=", API_key
                   ,"&cnt=", 96)
-    weather <<- fromJSON(file = url)
-    wind_speed <<- weather$list[[1]]$wind$speed
-    wind_dir <<- weather$list[[1]]$wind$deg
+      weather <<- fromJSON(file = url)
+      wind_speed <<- weather$list[[1]]$wind$speed
+      wind_dir <<- weather$list[[1]]$wind$deg
 
-    grow_fire(grid, list(list(50,50)),1)
+      grow_fire(grid, list(list(50,50)),1, hour)
     
-    draw_fire()
+      draw_fire()
+    }
+    else {
+      content <- paste(sep = "<br/>",
+                       "Fire will not start.",
+                       "Try a new location."
+      )
+        leafletProxy("map") %>% 
+          addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
+    }
   })
   
   # Grid is the grid built that the fire can spread to
   # spread_squares are the squares on fire that are currently spreading the fire
   # Depth is the depth of the recursion.  How many squares deep will the fire spread to
   
-  grow_fire <- function(grid, spread_squares, d){
-    if(d>20){ # set this to round hours / 2
+  grow_fire <- function(grid, spread_squares, d, hour){
+    if(d>ceiling(hour / 2)){
       return()
     }
     new_spread_squares <- c()
@@ -155,7 +158,7 @@ server <- function(input, output, session) {
     print(wind_speed)
     print(deg_to_NSEW(wind_dir))
     
-    grow_fire(grid, new_spread_squares, d+1)
+    grow_fire(grid, new_spread_squares, d+1, hour)
   }
   
   will_spread <- function(cell1, cell2){
@@ -197,7 +200,7 @@ server <- function(input, output, session) {
       cell_dir <- 225
     else if(x==-1&y==0)
       cell_dir <- 270
-    else if(x==-1&y==-1)
+    else if(x==-1&y==1)
       cell_dir <- 315
       
     # direction difference between wind and cell direction
@@ -234,30 +237,6 @@ server <- function(input, output, session) {
     else
       return('N')
   }
-  
-  observeEvent(input$startFire, {
-    
-    leafletProxy("map") %>% 
-      clearMarkers()
-    
-    
-    if (willFireStart(long, lati)) {
-      leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
-    
-      leafletProxy("map") %>% 
-        sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
-      
-      fireGrow(long, lati)
-    } else {
-      content <- paste(sep = "<br/>",
-          "Fire will not start.",
-          "Try a new location."
-          )
-      leafletProxy("map") %>% 
-        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
-    }
-  })
   
   observeEvent(input$endFires, {
     
