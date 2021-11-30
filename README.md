@@ -7,6 +7,7 @@ Wildfire Simulator that integrates geography with current and historical weather
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
+* [Data](#data)
 
 ## General info
 This project is simple fire simulator
