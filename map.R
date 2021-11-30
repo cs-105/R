@@ -125,7 +125,7 @@ server <- function(input, output, session) {
   # Depth is the depth of the recursion.  How many squares deep will the fire spread to
   
   grow_fire <- function(grid, spread_squares, d, hour){
-    if(d>ceiling(hour)){
+    if(d>ceiling(hour/2)){
       return()
     }
     new_spread_squares <- c()
