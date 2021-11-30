@@ -13,8 +13,8 @@ This project is simple fire simulator
 	
 ## Technologies
 Project is created with:
-* R language - 4.1.2
-* Open Weather API
+* [R language - 4.1.2](https://www.r-project.org/)
+* [Open Weather API](https://openweathermap.org/api)
 * Leaflet
 * [Vegetation Index](https://neo.gsfc.nasa.gov/view.php?datasetId=MOD_NDVI_M)
 	
