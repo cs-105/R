@@ -3,8 +3,27 @@ FUTURE FIRE
 ---
 Wildfire Simulator that integrates geography with current and historical weather to form an accurate fire prediction at any selected location around the United States. Returns a visual prediction of the fire and growth over time. [FutureFire](https://firemap.shinyapps.io/fireMapApp/)
 
-## Deployment
+## Table of contents
+* [General info](#general-info)
+* [Technologies](#technologies)
+* [Setup](#setup)
 
+## General info
+This project is simple Lorem ipsum dolor generator.
+	
+## Technologies
+Project is created with:
+* Lorem version: 12.3
+* Ipsum version: 2.33
+* Ament library version: 999
+	
+## Setup
+To run this project, install it locally using npm:
+
+```
+$ cd ../lorem
+$ npm install
+$ npm start
 
 ## Data
 Data is received from [OpenWeatherMap](https://openweathermap.org/) in the form of JSON. Historical weather data as well as future data is received to form the prediction.
