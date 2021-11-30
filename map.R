@@ -26,10 +26,6 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
-      actionButton("startFire", "Start Fire"),
-      actionButton("endFires", "End Fire(s)")
-    ),
-  fluidRow(
     leafletOutput("map")
   ),
   sidebarLayout(
@@ -37,12 +33,6 @@ ui <- fluidPage(
       sliderInput("sethour", "hour:",
                   min = 0, max = 96,
                   value = 0),
-      # sliderInput("setwind", "wind:",
-      #             min = 0, max = 50,
-      #             value = 0),
-      # sliderInput("setdir", "wind direction:",
-      #             min = 0, max = 360,
-      #             value = 0),
     ),
     mainPanel(
       tableOutput("values")
@@ -50,6 +40,7 @@ ui <- fluidPage(
   ),
   fluidRow(
     actionButton("updateFire", "Burn"),
+    actionButton("endFires", "End Fire(s)")
   )
 )
 
@@ -171,8 +162,7 @@ server <- function(input, output, session) {
     lon <- cell2[[1]]
     lat <- cell2[[2]]
     vegetation <- getVegetation(lon, lat)
-    # wind_speed <- weather$list[[hour]]$wind$speed
-    # wind_dir <- weather$list[[hour]]$wind$deg
+
     
     # gets the cell change vector
     x <- cell2[[1]]-cell1[[1]]
@@ -236,16 +226,7 @@ server <- function(input, output, session) {
     }
   }
   
-  # not really needed anymore
   deg_to_NSEW <- function(deg){
-    # list_coord <- list(list(1,1),list(1,0),list(1,-1),list(0,-1),list(-1,-1),list(-1,0),list(-1,1),list(0,1))
-    # for(i in 1:7){
-    #   if(deg >= 22.5 & deg <= 22.5+i*45){
-    #     return(list_coord[[i]])
-    #   }else{
-    #     return(list_coord[[8]])
-    #   }
-    # }
     dir_list <- list('NE','E','SE','S','SW','W','NW')
     if(wind_dir > 22.5 & wind_dir < 337.5){
       return(dir_list[[ceiling((wind_dir - 22.5) / 45)]])
