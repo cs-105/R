@@ -18,9 +18,13 @@ Project is created with:
 * [Open Weather API](https://openweathermap.org/api)
 * [Leaflet](https://leafletjs.com/) - 
 * [Vegetation Index](https://neo.gsfc.nasa.gov/view.php?datasetId=MOD_NDVI_M)
+* [RStudio](https://www.rstudio.com/products/rstudio/download/)
 	
 ## Setup
-To run this project, install it locally using npm:
+To run this locally
+1. Clone the project
+2. Install [R language - 4.1.2](https://www.r-project.org/), This can look different depending on your system
+3. Install [RStudio](https://www.rstudio.com/products/rstudio/download/)
 
 ```
 $ cd ../lorem
