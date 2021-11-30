@@ -29,13 +29,7 @@ To run this locally
 5. Run Installations.R to download all necesary packges
 6. Run the Map.R file
 
-```
-$ cd ../lorem
-$ npm install
-$ npm start
-```
-
 ## Data
-Data is received from [OpenWeatherMap](https://openweathermap.org/) in the form of JSON. Historical weather data as well as future data is received to form the prediction.
+The project is grabbing weather data from [OpenWeatherMap](https://openweathermap.org/) in the form of JSON. It uses some historical weather data to determine the probability of a fire starting, and current weather to incorperate wind and other enviornmental factors in the fire simulation.
 Approximate vegetation index received from [NASA](https://neo.gsfc.nasa.gov/view.php?datasetId=MOD_NDVI_M)
-in the form of a csv file. 
+in the form of a csv file.  The project uses this to determine if there's enough fuel for a fire to burn in this area.
