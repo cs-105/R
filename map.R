@@ -10,10 +10,10 @@ Sys.setenv(OWM_API_KEY = "ac66c8209bdf887068a2a79e4fdbca33")
 
 long <- 0.0
 lati <- 0.0
-hour <<- 0
-weather <<- NULL
-wind_speed <<- 0
-wind_dir <<- 0
+hour <- 0
+weather <- NULL
+wind_speed <- 0
+wind_dir <- 0
 burn_area <- c()
 grid <- c()
 weather_grid <- c()
@@ -26,7 +26,6 @@ ui <- fluidPage(
     useShinyjs()
   ),
   fluidRow(
-      actionButton("startFire", "Start Fire"),
       actionButton("endFires", "End Fire(s)")
     ),
   fluidRow(
@@ -35,7 +34,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("sethour", "hour:",
-                  min = 0, max = 96,
+                  min = 1, max = 49,
                   value = 0),
       # sliderInput("setwind", "wind:",
       #             min = 0, max = 50,
@@ -49,7 +48,7 @@ ui <- fluidPage(
     )
   ),
   fluidRow(
-    actionButton("updateFire", "Burn"),
+    actionButton("updateFire", "Start Fire"),
   )
 )
 
@@ -92,8 +91,31 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$updateFire, {
+    
+    leafletProxy("map") %>% 
+      clearMarkers()
+    
+    
+    if (willFireStart(long, lati)) {
+      leafletProxy("map") %>% 
+        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
+      
+      leafletProxy("map") %>% 
+        sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
+      
+      fireGrow(long, lati)
+    } else {
+      content <- paste(sep = "<br/>",
+                       "Fire will not start.",
+                       "Try a new location."
+      )
+      leafletProxy("map") %>% 
+        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
+    }
 
     hour <<- input$sethour
+    burn_area <<- c()
+    grid <<- c()
     # wind_speed <<- input$setwind
     # wind_dir <<- input$setdir
     
@@ -128,7 +150,7 @@ server <- function(input, output, session) {
   # Depth is the depth of the recursion.  How many squares deep will the fire spread to
   
   grow_fire <- function(grid, spread_squares, d){
-    if(d>20){ # set this to round hours / 2
+    if(d>hour){ # set this to round hours / 2
       return()
     }
     new_spread_squares <- c()
@@ -246,37 +268,37 @@ server <- function(input, output, session) {
     #     return(list_coord[[8]])
     #   }
     # }
-    dir_list <- list('NE','E','SE','S','SW','W','NW')
+    dir_list <- list('SW','W','NW','N','NE','E','SE')
     if(wind_dir > 22.5 & wind_dir < 337.5){
       return(dir_list[[ceiling((wind_dir - 22.5) / 45)]])
   }
     else
-      return('N')
+      return('S')
   }
   
-  observeEvent(input$startFire, {
-    
-    leafletProxy("map") %>% 
-      clearMarkers()
-    
-    
-    if (willFireStart(long, lati)) {
-      leafletProxy("map") %>% 
-        addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
-    
-      leafletProxy("map") %>% 
-        sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
-      
-      fireGrow(long, lati)
-    } else {
-      content <- paste(sep = "<br/>",
-          "Fire will not start.",
-          "Try a new location."
-          )
-      leafletProxy("map") %>% 
-        addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
-    }
-  })
+  # observeEvent(input$startFire, {
+  #   
+  #   leafletProxy("map") %>% 
+  #     clearMarkers()
+  #   
+  #   
+  #   if (willFireStart(long, lati)) {
+  #     leafletProxy("map") %>% 
+  #       addCircles(lng = long, lat = lati, weight = 1, radius = 800, color = "#000000", group = "fires")
+  #   
+  #     leafletProxy("map") %>% 
+  #       sliderInput(inputId = "time", label = "Select time since inception (in hour)", min = 0, max = 96, value = 0, step = 4)
+  #     
+  #     fireGrow(long, lati)
+  #   } else {
+  #     content <- paste(sep = "<br/>",
+  #         "Fire will not start.",
+  #         "Try a new location."
+  #         )
+  #     leafletProxy("map") %>% 
+  #       addPopups(long, lati, content, options = popupOptions((closeButton = TRUE)))
+  #   }
+  # })
   
   observeEvent(input$endFires, {
     
