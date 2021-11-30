@@ -15,7 +15,7 @@ This project is simple fire simulator
 Project is created with:
 * [R language - 4.1.2](https://www.r-project.org/)
 * [Open Weather API](https://openweathermap.org/api)
-* Leaflet
+* [Leaflet](https://leafletjs.com/)
 * [Vegetation Index](https://neo.gsfc.nasa.gov/view.php?datasetId=MOD_NDVI_M)
 	
 ## Setup
