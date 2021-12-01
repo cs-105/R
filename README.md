@@ -27,7 +27,8 @@ To run this locally
 3. Install [RStudio](https://www.rstudio.com/products/rstudio/download/)
 4. Open the project in RStudio
 5. Run Installations.R to download all necesary packges
-6. Run the Map.R file
+6. Replace the given Open Weather API key with your personal key
+7. Run the Map.R file
 
 ## Data
 The project is retrieving weather data from [OpenWeatherMap](https://openweathermap.org/) in the form of JSON. It uses some historical weather data to determine the probability of a fire starting, and current weather to incorperate wind and other enviornmental factors in the fire simulation.
