@@ -1,7 +1,7 @@
 FUTURE FIRE 
 ![FutureFire](https://github.com/cs-105/R/blob/Claire/FutureFireLogo.png)
 ---
-Wildfire Simulator that integrates geography with current and historical weather to form a fire prediction at a selected location around the United States. Returns a visual prediction of the fire and growth over time. [FutureFire](https://firemap.shinyapps.io/fireMapApp/)
+Wildfire Simulator that integrates geography with current and historical weather to form a fire prediction at a selected location around the United States. Returns a visual prediction of the fire and growth over time. You can see the deployed app here: [FutureFire](https://firemap.shinyapps.io/firemap/).
 
 ## Table of contents
 * [General info](#general-info)
