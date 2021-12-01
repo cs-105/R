@@ -101,7 +101,7 @@ server <- function(input, output, session) {
       url <- paste0("http://pro.openweathermap.org/data/2.5/forecast/hourly?lat=", lati
                   ,"&lon=", long
                   ,"&appid=", API_key
-                  ,"&cnt=", 96)
+                  ,"&cnt=", 48)
       weather <<- fromJSON(file = url)
       wind_speed <<- weather$list[[1]]$wind$speed
       wind_dir <<- weather$list[[1]]$wind$deg
@@ -207,15 +207,19 @@ server <- function(input, output, session) {
       cell_dir <- 315
       
     # direction difference between wind and cell direction
-    dd = wind_dir - cell_dir
-    dd = (dd + 180) %% 360 - 180
-    wind_prob <- (180 - dd)/(100 + wind_speed*4)
-    if(wind_speed < 5)
-      wind_prob <- wind_prob + (1 - wind_speed/10)
-    if(wind_prob > 1)
-      wind_prob <- 1
+    dd <- abs(wind_dir - cell_dir)
+    if (dd > 180) {
+      dd <- 360 - dd
+    }
+    if (dd > 120) {
+      wind_prob <- (wind_speed / 2) + log(dd)
+    } else if (dd < 60) {
+      wind_prob <- log(dd) - (wind_speed / 2)
+    } else {
+      wind_prob <- log(dd)
+    }
     rand <- sample(1:10, 1)
-    prob = round(15*vegetation*wind_prob,0)
+    prob = (6 * log(1 + vegetation)) + wind_prob
     
     if (is.null(vegetation) || vegetation > 1 || prob < rand ) {
       return(FALSE)
@@ -233,12 +237,12 @@ server <- function(input, output, session) {
   }
   
   deg_to_NSEW <- function(deg){
-    dir_list <- list('NE','E','SE','S','SW','W','NW')
+    dir_list <- list('SW','W','NW','N','NE','E','SE')
     if(wind_dir > 22.5 & wind_dir < 337.5){
       return(dir_list[[ceiling((wind_dir - 22.5) / 45)]])
   }
     else
-      return('N')
+      return('S')
   }
   
   observeEvent(input$endFires, {
