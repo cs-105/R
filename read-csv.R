@@ -2,6 +2,7 @@ readVeg <- function() {
   return(read.csv(file = "vegetation.csv", row.names = 1, header = TRUE, check.names = FALSE))
 }
 
+# Reads in the vegetation file and returns the value at the given coordinates
 getVegetation <- function(long, lat) {
   vegFile <- readVeg()
   long <- (round_any(long, .1, f = floor) + .05)
